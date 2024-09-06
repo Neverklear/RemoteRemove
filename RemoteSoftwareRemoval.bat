@@ -19,28 +19,41 @@ set backupFile=%userprofile%\Desktop\RegistryBackup.reg
 reg export "HKEY_CURRENT_USER" "%backupFile%" /y
 echo Registry backup saved to %backupFile%.
 
-:: List of remote access software executables to search for
-set "processes=AnyDesk.exe TeamViewer.exe TeamViewer_Desktop.exe UltraViewer.exe ScreenConnect.Client.exe ScreenConnect.ClientService.exe SplashtopRemoteService.exe SRManager.exe LogMeIn.exe LMIGuardian.exe g2ax_service.exe g2mcomm.exe RemotePCService.exe rpclient.exe DWRCS.exe DameWare.exe winvnc.exe vncserver.exe vncviewer.exe AA_v3.exe aeroadmin.exe rutserv.exe rview.exe"
+:: List of registry keys to delete
+set "keysToDelete=AnyDesk TeamViewer UltraViewer ScreenConnect Splashtop LogMeIn GoToAssist RemotePC DameWare VNC AmmyyAdmin AeroAdmin RemoteUtilities"
 
-:: Function to search and remove registry entries
+:: Function to check and remove registry entries
 echo Searching and removing registry entries...
-for %%p in (AnyDesk TeamViewer UltraViewer ScreenConnect Splashtop LogMeIn GoToAssist RemotePC DameWare VNC Ammyy AeroAdmin RemoteUtilities) do (
-    echo Searching for %%p entries in the registry...
-    for /F "tokens=*" %%R in ('reg query HKCU /F %%p /S /K') do (
-        echo Deleting %%R...
-        reg delete "%%R" /f
+
+for %%p in (%keysToDelete%) do (
+    echo Processing %%p...
+    
+    :: Check and delete from HKEY_CURRENT_USER
+    reg query "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v %%p >nul 2>&1
+    if %errorlevel% == 0 (
+        echo Deleting %%p from HKEY_CURRENT_USER...
+        reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v %%p /f
     )
-    for /F "tokens=*" %%R in ('reg query HKLM /F %%p /S /K') do (
-        echo Deleting %%R...
-        reg delete "%%R" /f
+
+    :: Check and delete from HKEY_LOCAL_MACHINE
+    reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v %%p >nul 2>&1
+    if %errorlevel% == 0 (
+        echo Deleting %%p from HKEY_LOCAL_MACHINE...
+        reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v %%p /f
     )
-    for /F "tokens=*" %%R in ('reg query HKU /F %%p /S /K') do (
-        echo Deleting %%R...
-        reg delete "%%R" /f
+
+    :: Check and delete from HKEY_LOCAL_MACHINE WOW6432Node
+    reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v %%p >nul 2>&1
+    if %errorlevel% == 0 (
+        echo Deleting %%p from HKEY_LOCAL_MACHINE WOW6432Node...
+        reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v %%p /f
     )
 )
 
 echo Scanning for remote access software...
+
+:: List of remote access software executables to search for
+set "processes=AnyDesk.exe TeamViewer.exe TeamViewer_Desktop.exe UltraViewer.exe ScreenConnect.Client.exe ScreenConnect.ClientService.exe SplashtopRemoteService.exe SRManager.exe LogMeIn.exe LMIGuardian.exe g2ax_service.exe g2mcomm.exe RemotePCService.exe rpclient.exe DWRCS.exe DameWare.exe winvnc.exe vncserver.exe vncviewer.exe AA_v3.exe aeroadmin.exe rutserv.exe rview.exe"
 
 :: Loop through each process and check if it's running
 for %%p in (%processes%) do (
@@ -92,49 +105,5 @@ del /F /Q "%programdata%\Microsoft\Windows\Start Menu\Programs\Startup\AmmyyAdmi
 del /F /Q "%programdata%\Microsoft\Windows\Start Menu\Programs\Startup\AeroAdmin.lnk" 2>nul
 del /F /Q "%programdata%\Microsoft\Windows\Start Menu\Programs\Startup\RemoteUtilities.lnk" 2>nul
 
-echo Removing from Windows Registry...
-:: Remove startup entries from the registry
-reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v AnyDesk /f
-reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v TeamViewer /f
-reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v UltraViewer /f
-reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v ScreenConnect /f
-reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v Splashtop /f
-reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v LogMeIn /f
-reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v GoToAssist /f
-reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v RemotePC /f
-reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v DameWare /f
-reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v VNC /f
-reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v AmmyyAdmin /f
-reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v AeroAdmin /f
-reg delete "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run" /v RemoteUtilities /f
-
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v AnyDesk /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v TeamViewer /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v UltraViewer /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v ScreenConnect /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v Splashtop /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v LogMeIn /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v GoToAssist /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v RemotePC /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v DameWare /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v VNC /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v AmmyyAdmin /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v AeroAdmin /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v RemoteUtilities /f
-
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v AnyDesk /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v TeamViewer /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v UltraViewer /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v ScreenConnect /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v Splashtop /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v LogMeIn /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v GoToAssist /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v RemotePC /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v DameWare /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v VNC /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v AmmyyAdmin /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v AeroAdmin /f
-reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run" /v RemoteUtilities /f
-
-echo All traces removed from startup, running processes terminated, and registry entries cleared.
+echo All traces removed from startup and registry entries cleared.
 pause
